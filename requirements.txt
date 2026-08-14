@@ -3,5 +3,3 @@ requests
 pandas
 dotenv
 Pillow
-
-#Ollama model llava:7b required
