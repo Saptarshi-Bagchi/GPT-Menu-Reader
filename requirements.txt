@@ -1,5 +1,0 @@
-#Required libraries
-requests
-pandas
-dotenv
-Pillow
