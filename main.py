@@ -66,19 +66,36 @@ Columns and Limits:
 """
 
 #Test the API call with 1 image
-image_url = encode_image(os.path.join(IMAGE_DIR, image_files[0]))
-response = client.responses.parse(
-    model = MODEL,
-    instructions = system_prompt,
-    input = [
-        {
-            "role": "user",
-            "content": [
-                { "type": "input_text", "text": "Extract the menu items from this image. Output must match the schema." },
-                { "type": "input_image", "image_url": image_url }
-            ]
-        }
-    ],
-    text_format = MenuPayLoad
-)
-print(response)
+for image in image_files:
+    try:
+        image_url = encode_image(os.path.join(IMAGE_DIR, image))
+        response = client.responses.parse(
+            model = MODEL,
+            instructions = system_prompt,
+            input = [
+            {
+                "role": "user",
+                "content": [
+                    { "type": "input_text", "text": "Extract the menu items from this image. Output must match the schema." },
+                    { "type": "input_image", "image_url": image_url }
+                ]
+            }],
+            text_format = MenuPayLoad
+        )
+        payload = response.output_parsed
+        rows.extend([item.model_dump() for item in payload.items])
+        print(f"{image}: {len(payload.items)} item(s)")
+    except Exception as e:
+        print(f"{image}: {e}")
+
+#Display Total amount of Items Transcribed
+print(f"Total Items: {len(rows)}")
+
+#Transform the output into a DataFrame
+df = pd.DataFrame(rows, columns=COLUMNS)
+
+#Ask for a name for the excel file
+excel_name = input("Enter a name for the Excel File: ")
+if not excel_name.endswith(".xlsx"):
+    excel_name += ".xlsx"
+df.to_excel(excel_name, index=False)
